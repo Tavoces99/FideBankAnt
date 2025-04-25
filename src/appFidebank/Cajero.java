@@ -49,9 +49,4 @@ public class Cajero {
             origen.transferir(destino, monto);
         }
     }
-    
-    public void imprimirComprobante(Transaccion transaccion) {
-        Impresora impresora = new Impresora();
-        impresora.imprimir(transaccion);
-    }
 }

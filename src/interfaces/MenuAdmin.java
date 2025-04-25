@@ -22,6 +22,7 @@ public class MenuAdmin extends javax.swing.JFrame {
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
         jMenuItem2 = new javax.swing.JMenuItem();
+        jMenuItem3 = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -68,6 +69,14 @@ public class MenuAdmin extends javax.swing.JFrame {
         });
         jMenu1.add(jMenuItem2);
 
+        jMenuItem3.setText("IMPRIMIR");
+        jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem3ActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItem3);
+
         jMenuBar1.add(jMenu1);
 
         setJMenuBar(jMenuBar1);
@@ -88,11 +97,14 @@ public class MenuAdmin extends javax.swing.JFrame {
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
         jPanel2.removeAll();
+        jPanel2.setLayout(new BorderLayout());
+
         VistaPersonalAdmin persoAdm = new VistaPersonalAdmin();
-        persoAdm.setSize(590, 290);
-        
-        jPanel2.removeAll();
+        persoAdm.setSize(jPanel2.getWidth(), jPanel2.getHeight());
+        persoAdm.setVisible(true);
+
         jPanel2.add(persoAdm, BorderLayout.CENTER);
+
         jPanel2.revalidate();
         jPanel2.repaint();
     }//GEN-LAST:event_jMenuItem1ActionPerformed
@@ -100,13 +112,29 @@ public class MenuAdmin extends javax.swing.JFrame {
     private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
         jPanel2.removeAll();
         VistaGeneralAdmin genAdmin = new VistaGeneralAdmin();
-        genAdmin.setSize(590, 290);
-        
-        jPanel2.removeAll();
+        genAdmin.setSize(jPanel2.getWidth(), jPanel2.getHeight());
+        genAdmin.setVisible(true);
+
+        jPanel2.setLayout(new BorderLayout());
         jPanel2.add(genAdmin, BorderLayout.CENTER);
+
         jPanel2.revalidate();
         jPanel2.repaint();
     }//GEN-LAST:event_jMenuItem2ActionPerformed
+
+    private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
+        jPanel2.removeAll();
+        jPanel2.setLayout(new BorderLayout());
+
+        VistaDetallelAdmin detAdmin = new VistaDetallelAdmin();
+        detAdmin.setSize(jPanel2.getWidth(), jPanel2.getHeight());
+        detAdmin.setVisible(true);
+
+        jPanel2.add(detAdmin, BorderLayout.CENTER);
+
+        jPanel2.revalidate();
+        jPanel2.repaint();
+    }//GEN-LAST:event_jMenuItem3ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -151,6 +179,7 @@ public class MenuAdmin extends javax.swing.JFrame {
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem2;
+    private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     // End of variables declaration//GEN-END:variables

@@ -98,21 +98,26 @@ public class MenuCliente extends javax.swing.JFrame {
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
         jPanel2.removeAll();
         deposito dep = new deposito();
-        dep.setSize(590, 290);
+        dep.setSize(jPanel2.getWidth(), jPanel2.getHeight());
+        dep.setVisible(true);
         
-        jPanel2.removeAll();
+        jPanel2.setLayout(new BorderLayout());
         jPanel2.add(dep, BorderLayout.CENTER);
+
         jPanel2.revalidate();
         jPanel2.repaint();
     }//GEN-LAST:event_jMenuItem1ActionPerformed
 
     private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
         jPanel2.removeAll();
+
         retiro ret = new retiro();
-        ret.setSize(590, 290);
-        
-        jPanel2.removeAll();
+        ret.setSize(jPanel2.getWidth(), jPanel2.getHeight());
+        ret.setVisible(true);
+
+        jPanel2.setLayout(new BorderLayout());
         jPanel2.add(ret, BorderLayout.CENTER);
+
         jPanel2.revalidate();
         jPanel2.repaint();
     }//GEN-LAST:event_jMenuItem2ActionPerformed
@@ -120,10 +125,12 @@ public class MenuCliente extends javax.swing.JFrame {
     private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
         jPanel2.removeAll();
         transferencia transfe = new transferencia();
-        transfe.setSize(590, 290);
-        
-        jPanel2.removeAll();
+        transfe.setSize(jPanel2.getWidth(), jPanel2.getHeight());
+        transfe.setVisible(true);
+
+        jPanel2.setLayout(new BorderLayout());
         jPanel2.add(transfe, BorderLayout.CENTER);
+
         jPanel2.revalidate();
         jPanel2.repaint();
     }//GEN-LAST:event_jMenuItem3ActionPerformed

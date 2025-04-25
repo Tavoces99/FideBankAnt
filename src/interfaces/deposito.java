@@ -5,6 +5,12 @@
  */
 package interfaces;
 
+import appFidebank.Conexion;
+import appFidebank.Sesion;
+import javax.swing.JOptionPane;
+import java.sql.*;
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author PC-LUIS
@@ -30,12 +36,12 @@ public class deposito extends javax.swing.JPanel {
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
-        jTextField2 = new javax.swing.JTextField();
+        txtDeposito = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        tablaDeposito = new javax.swing.JTable();
         jScrollPane2 = new javax.swing.JScrollPane();
-        jTextArea1 = new javax.swing.JTextArea();
+        txtResultado = new javax.swing.JTextArea();
         jButton1 = new javax.swing.JButton();
 
         setPreferredSize(new java.awt.Dimension(590, 290));
@@ -48,12 +54,12 @@ public class deposito extends javax.swing.JPanel {
 
         jLabel3.setText("Monto");
         jPanel1.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 30, -1, -1));
-        jPanel1.add(jTextField2, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 50, 90, -1));
+        jPanel1.add(txtDeposito, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 50, 90, -1));
 
         jLabel2.setText("Resumen");
         jPanel1.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 150, -1, -1));
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        tablaDeposito.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null}
             },
@@ -61,18 +67,23 @@ public class deposito extends javax.swing.JPanel {
                 "Cliente", "Cuenta", "Monto", "Estado"
             }
         ));
-        jScrollPane1.setViewportView(jTable1);
+        jScrollPane1.setViewportView(tablaDeposito);
 
-        jPanel1.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 180, 530, 50));
+        jPanel1.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 180, 530, 70));
 
-        jTextArea1.setColumns(20);
-        jTextArea1.setRows(5);
-        jScrollPane2.setViewportView(jTextArea1);
+        txtResultado.setColumns(20);
+        txtResultado.setRows(5);
+        jScrollPane2.setViewportView(txtResultado);
 
         jPanel1.add(jScrollPane2, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 60, 240, -1));
 
         jButton1.setBackground(new java.awt.Color(204, 255, 204));
         jButton1.setText("DEPOSITAR");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
         jPanel1.add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 100, -1, -1));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -87,6 +98,69 @@ public class deposito extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        Connection conn = Conexion.getConnection();
+
+        if (conn == null) {
+            JOptionPane.showMessageDialog(this, "Error de conexión a la base de datos");
+            return;
+        }
+
+        String montoTexto = txtDeposito.getText().trim();
+        if (montoTexto.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Ingrese un monto para depositar");
+            return;
+        }
+
+        try {
+            double monto = Double.parseDouble(montoTexto);
+
+            String pinIngresado = JOptionPane.showInputDialog(this, "Ingrese su PIN:");
+            if (pinIngresado == null || pinIngresado.trim().isEmpty()) {
+                return;
+            }
+
+            String sqlValidar = "SELECT * FROM tbl_usuario WHERE cedula = ? AND pin = ?";
+            PreparedStatement psVal = conn.prepareStatement(sqlValidar);
+            psVal.setInt(1, Sesion.cedula);
+            psVal.setInt(2, Integer.parseInt(pinIngresado));
+            ResultSet rs = psVal.executeQuery();
+
+            if (rs.next()) {
+                String sqlInsert = "INSERT INTO detalle_transaccion (cedula, id_operacion, num_dest, cant) VALUES (?, 2, NULL, ?)";
+                PreparedStatement psIns = conn.prepareStatement(sqlInsert);
+                psIns.setInt(1, Sesion.cedula);
+                psIns.setDouble(2, monto);
+                psIns.executeUpdate();
+
+                String sqlUpdateSaldo = "UPDATE tbl_usuario SET saldo = saldo + ? WHERE cedula = ?";
+                PreparedStatement psUp = conn.prepareStatement(sqlUpdateSaldo);
+                psUp.setDouble(1, monto);
+                psUp.setInt(2, Sesion.cedula);
+                psUp.executeUpdate();
+
+                txtResultado.setText("Depósito de ₡/. " + monto + " realizado con éxito.");
+
+                DefaultTableModel modelo = (DefaultTableModel) tablaDeposito.getModel();
+                modelo.addRow(new Object[]{
+                    Sesion.nombre,
+                    Sesion.numCuenta,
+                    monto,
+                    "Aprobado"
+                });
+
+            } else {
+                JOptionPane.showMessageDialog(this, "PIN incorrecto");
+            }
+
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Monto inválido");
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error al procesar el depósito");
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
@@ -96,8 +170,8 @@ public class deposito extends javax.swing.JPanel {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JTable jTable1;
-    private javax.swing.JTextArea jTextArea1;
-    private javax.swing.JTextField jTextField2;
+    private javax.swing.JTable tablaDeposito;
+    private javax.swing.JTextField txtDeposito;
+    private javax.swing.JTextArea txtResultado;
     // End of variables declaration//GEN-END:variables
 }

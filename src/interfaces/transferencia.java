@@ -5,6 +5,12 @@
  */
 package interfaces;
 
+import appFidebank.Conexion;
+import appFidebank.Sesion;
+import javax.swing.JOptionPane;
+import java.sql.*;
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author PC-LUIS
@@ -30,14 +36,14 @@ public class transferencia extends javax.swing.JPanel {
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
-        jTextField2 = new javax.swing.JTextField();
+        txtMonto = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        tblTransferencia = new javax.swing.JTable();
         jScrollPane2 = new javax.swing.JScrollPane();
-        jTextArea1 = new javax.swing.JTextArea();
+        txtResultado = new javax.swing.JTextArea();
         jButton1 = new javax.swing.JButton();
-        jTextField1 = new javax.swing.JTextField();
+        txtCtaDestino = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
 
         setPreferredSize(new java.awt.Dimension(590, 290));
@@ -50,12 +56,12 @@ public class transferencia extends javax.swing.JPanel {
 
         jLabel3.setText("Monto");
         jPanel1.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 80, -1, -1));
-        jPanel1.add(jTextField2, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 100, 90, -1));
+        jPanel1.add(txtMonto, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 100, 90, -1));
 
         jLabel2.setText("Resumen");
         jPanel1.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 190, -1, -1));
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        tblTransferencia.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null}
             },
@@ -63,20 +69,25 @@ public class transferencia extends javax.swing.JPanel {
                 "Cliente Beneficiado", "Cuenta destino", "Monto", "Estado"
             }
         ));
-        jScrollPane1.setViewportView(jTable1);
+        jScrollPane1.setViewportView(tblTransferencia);
 
-        jPanel1.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 220, 530, 50));
+        jPanel1.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 210, 530, 70));
 
-        jTextArea1.setColumns(20);
-        jTextArea1.setRows(5);
-        jScrollPane2.setViewportView(jTextArea1);
+        txtResultado.setColumns(20);
+        txtResultado.setRows(5);
+        jScrollPane2.setViewportView(txtResultado);
 
         jPanel1.add(jScrollPane2, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 60, 240, -1));
 
         jButton1.setBackground(new java.awt.Color(204, 255, 204));
         jButton1.setText("TRANSFERIR");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
         jPanel1.add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 140, -1, -1));
-        jPanel1.add(jTextField1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 40, 90, -1));
+        jPanel1.add(txtCtaDestino, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 40, 90, -1));
 
         jLabel4.setText("Cuenta destino");
         jPanel1.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 20, -1, -1));
@@ -93,6 +104,104 @@ public class transferencia extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+         Connection conn = Conexion.getConnection();
+
+        if (conn == null) {
+            JOptionPane.showMessageDialog(this, "Error de conexión a la base de datos");
+            return;
+        }
+
+        String destinoTexto = txtCtaDestino.getText().trim();
+        String montoTexto = txtMonto.getText().trim();
+
+        if (destinoTexto.isEmpty() || montoTexto.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Complete todos los campos");
+            return;
+        }
+
+        try {
+            int cuentaDestino = Integer.parseInt(destinoTexto);
+            double monto = Double.parseDouble(montoTexto);
+
+            if (cuentaDestino == Sesion.numCuenta) {
+                JOptionPane.showMessageDialog(this, "No puede transferirse a su propia cuenta");
+                return;
+            }
+
+            if (Sesion.saldo < monto) {
+                JOptionPane.showMessageDialog(this, "Saldo insuficiente");
+                return;
+            }
+
+            String pinIngresado = JOptionPane.showInputDialog(this, "Ingrese su PIN:");
+            if (pinIngresado == null || pinIngresado.trim().isEmpty()) {
+                return;
+            }
+
+            String sqlValidar = "SELECT * FROM tbl_usuario WHERE cedula = ? AND pin = ?";
+            PreparedStatement psVal = conn.prepareStatement(sqlValidar);
+            psVal.setInt(1, Sesion.cedula);
+            psVal.setInt(2, Integer.parseInt(pinIngresado));
+            ResultSet rsVal = psVal.executeQuery();
+
+            if (!rsVal.next()) {
+                JOptionPane.showMessageDialog(this, "PIN incorrecto");
+                return;
+            }
+
+            String sqlDest = "SELECT * FROM tbl_usuario WHERE num_cuenta = ?";
+            PreparedStatement psDest = conn.prepareStatement(sqlDest);
+            psDest.setInt(1, cuentaDestino);
+            ResultSet rsDest = psDest.executeQuery();
+
+            if (!rsDest.next()) {
+                JOptionPane.showMessageDialog(this, "Cuenta de destino no encontrada");
+                return;
+            }
+
+            int cedulaDestino = rsDest.getInt("cedula");
+            String nombreDestino = rsDest.getString("nombre");
+
+            String sqlInsert = "INSERT INTO detalle_transaccion (cedula, id_operacion, num_dest, cant) VALUES (?, 3, ?, ?)";
+            PreparedStatement psInsert = conn.prepareStatement(sqlInsert);
+            psInsert.setInt(1, Sesion.cedula);
+            psInsert.setInt(2, cuentaDestino);
+            psInsert.setDouble(3, monto);
+            psInsert.executeUpdate();
+
+            String sqlResta = "UPDATE tbl_usuario SET saldo = saldo - ? WHERE cedula = ?";
+            PreparedStatement psResta = conn.prepareStatement(sqlResta);
+            psResta.setDouble(1, monto);
+            psResta.setInt(2, Sesion.cedula);
+            psResta.executeUpdate();
+
+            String sqlSuma = "UPDATE tbl_usuario SET saldo = saldo + ? WHERE cedula = ?";
+            PreparedStatement psSuma = conn.prepareStatement(sqlSuma);
+            psSuma.setDouble(1, monto);
+            psSuma.setInt(2, cedulaDestino);
+            psSuma.executeUpdate();
+
+            txtResultado.setText("Depósito realizado con éxito a la cuenta " + cuentaDestino + " con monto ₡/. " + monto);
+
+            DefaultTableModel modelo = (DefaultTableModel) tblTransferencia.getModel();
+            modelo.addRow(new Object[]{
+                nombreDestino,
+                cuentaDestino,
+                monto,
+                "Aprobado"
+            });
+
+            Sesion.saldo -= monto;
+
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Datos numéricos inválidos");
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error al realizar la transferencia");
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
@@ -103,9 +212,9 @@ public class transferencia extends javax.swing.JPanel {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JTable jTable1;
-    private javax.swing.JTextArea jTextArea1;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField2;
+    private javax.swing.JTable tblTransferencia;
+    private javax.swing.JTextField txtCtaDestino;
+    private javax.swing.JTextField txtMonto;
+    private javax.swing.JTextArea txtResultado;
     // End of variables declaration//GEN-END:variables
 }

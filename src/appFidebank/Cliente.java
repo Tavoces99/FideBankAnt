@@ -3,6 +3,7 @@ package appFidebank;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.sql.*;
 
 public class Cliente implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -54,5 +55,44 @@ public class Cliente implements Serializable {
 
     public void registrarTransaccion(Transaccion transaccion) {
         historialTransaccion.add(transaccion);
+    }
+    
+    public static String validarCredenciales(String usuario, String clave) {
+        Connection conn = Conexion.getConnection();
+
+        if (conn == null) {
+            return "error conexion";
+        }
+
+        try {
+            String sqlEmp = "SELECT * FROM tbl_empleado WHERE cod_emp = ? AND contra = ?";
+            PreparedStatement psEmp = conn.prepareStatement(sqlEmp);
+            psEmp.setInt(1, Integer.parseInt(usuario));
+            psEmp.setString(2, clave);
+            ResultSet rsEmp = psEmp.executeQuery();
+
+            if (rsEmp.next()) {
+                return "empleado";
+            }
+
+            String sqlCli = "SELECT * FROM tbl_usuario WHERE cedula = ? AND pin = ?";
+            PreparedStatement psCli = conn.prepareStatement(sqlCli);
+            psCli.setInt(1, Integer.parseInt(usuario));
+            psCli.setInt(2, Integer.parseInt(clave));
+            ResultSet rsCli = psCli.executeQuery();
+
+            if (rsCli.next()) {
+                Sesion.cedula = rsCli.getInt("cedula");
+                Sesion.nombre = rsCli.getString("nombre");
+                Sesion.numCuenta = rsCli.getInt("num_cuenta");
+                Sesion.saldo = rsCli.getDouble("saldo");
+                return "cliente";
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return "no valido";
     }
 }
